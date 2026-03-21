@@ -5,11 +5,15 @@ import java.awt.*;
 
 public class MainWindow extends JFrame {
 
-    private JPanel mainPanel = new JPanel();
+    private final JPanel mainPanel = new JPanel();
     public MainWindow(){
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setMinimumSize(new Dimension(500, 450));
+        setMinimumSize(new Dimension(800, 650));
         mainPanel.setBackground(Color.WHITE);
+        setContent();
+    }
+
+    private void setContent(){
         var gl = new GroupLayout(getContentPane());
         setLayout(gl);
         gl.setVerticalGroup(gl.createSequentialGroup()
