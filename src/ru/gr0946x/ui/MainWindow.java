@@ -8,6 +8,8 @@ import ru.gr0946x.ui.painting.Painter;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 
 import static java.lang.Math.*;
 
@@ -31,6 +33,15 @@ public class MainWindow extends JFrame {
         });
         mainPanel = new SelectablePanel(painter);
         mainPanel.setBackground(Color.WHITE);
+
+        mainPanel.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                recalculateBounds();
+                mainPanel.repaint();
+            }
+        });
+
         mainPanel.addSelectListener((r)->{
             var xMin = conv.xScr2Crt(r.x);
             var xMax = conv.xScr2Crt(r.x + r.width);
@@ -38,6 +49,9 @@ public class MainWindow extends JFrame {
             var yMax = conv.yScr2Crt(r.y);
             conv.setXShape(xMin, xMax);
             conv.setYShape(yMin, yMax);
+
+            currentScale = 0.0;
+            recalculateBounds();
             mainPanel.repaint();
         });
         setContent();
@@ -57,4 +71,38 @@ public class MainWindow extends JFrame {
                 .addGap(8)
         );
     }
+
+    private double currentScale = 0.0;
+
+    private void recalculateBounds() {
+        int width = mainPanel.getWidth();
+        int height = mainPanel.getHeight();
+        if (width <= 0 || height <= 0) return;
+
+        double xMin = conv.getXMin();
+        double xMax = conv.getXMax();
+        double yMin = conv.getYMin();
+        double yMax = conv.getXMax();
+
+        double xRange = xMax - xMin;
+        double yRange = yMax - yMin;
+
+        double scaleX = xRange / width;
+        double scaleY = yRange / height;
+
+        double newScale = Math.max(scaleX, scaleY);
+        if (currentScale == 0.0 || newScale < currentScale) {
+            currentScale = newScale;
+        }
+
+        double newXRange = currentScale * width;
+        double newYRange = currentScale * height;
+
+        double xDiff = (newXRange - xRange) / 2.0;
+        double yDiff = (newYRange - yRange) / 2.0;
+
+        conv.setXShape(xMin - xDiff, xMax + xDiff);
+        conv.setYShape(yMin - yDiff, yMax + yDiff);
+    }
+
 }
