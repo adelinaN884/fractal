@@ -47,7 +47,7 @@ public class FractalPainter implements Painter{
                 var y = conv.yScr2Crt(j);
                 var res = fractal.inSetProbability(x, y);
                 g.setColor(colorFunction.getColor(res));
-                g.drawLine(i, j, i + 1, j);
+                g.fillRect(i, j, 1, 1);
             }
         }
     }
