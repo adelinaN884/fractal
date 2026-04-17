@@ -82,7 +82,7 @@ public class MainWindow extends JFrame {
         double xMin = conv.getXMin();
         double xMax = conv.getXMax();
         double yMin = conv.getYMin();
-        double yMax = conv.getXMax();
+        double yMax = conv.getYMax();
 
         double xRange = xMax - xMin;
         double yRange = yMax - yMin;
