@@ -8,6 +8,7 @@ import ru.gr0946x.ui.painting.Painter;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.InputEvent;
 
 import static java.lang.Math.*;
 
@@ -41,6 +42,7 @@ public class MainWindow extends JFrame {
             mainPanel.repaint();
         });
         setContent();
+        createMenu();
     }
 
     private void setContent(){
@@ -57,4 +59,43 @@ public class MainWindow extends JFrame {
                 .addGap(8)
         );
     }
+
+    private void createMenu() {
+        JMenuBar menuBar = new JMenuBar();
+
+        // Меню «Файл»
+        JMenu fileMenu = new JMenu("Файл");
+        JMenuItem saveFrac = new JMenuItem("Сохранить как .frac");
+        JMenuItem saveJpg = new JMenuItem("Сохранить как JPG");
+        JMenuItem savePng = new JMenuItem("Сохранить как PNG");
+        JMenuItem openFrac = new JMenuItem("Открыть .frac");
+
+        fileMenu.add(saveFrac);
+        fileMenu.add(saveJpg);
+        fileMenu.add(savePng);
+        fileMenu.addSeparator();
+        fileMenu.add(openFrac);
+
+        JMenu editMenu = new JMenu("Правка");
+        JMenuItem undo = new JMenuItem("Отменить действие (Ctrl+Z)");
+        undo.setAccelerator(KeyStroke.getKeyStroke('Z', InputEvent.CTRL_DOWN_MASK));
+        editMenu.add(undo);
+
+        JMenu viewMenu = new JMenu("Вид");
+        JMenuItem showJulia = new JMenuItem("Показать множество Жюлиа");
+        viewMenu.add(showJulia);
+
+        JMenu animationMenu = new JMenu("Анимация");
+        JMenuItem setupAnimation = new JMenuItem("Настройка экскурсии");
+        animationMenu.add(setupAnimation);
+
+        menuBar.add(fileMenu);
+        menuBar.add(editMenu);
+        menuBar.add(viewMenu);
+        menuBar.add(animationMenu);
+
+        setJMenuBar(menuBar);
+    }
+
+
 }
