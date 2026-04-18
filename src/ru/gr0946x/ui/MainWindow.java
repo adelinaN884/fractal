@@ -29,7 +29,10 @@ public class MainWindow extends JFrame {
             var b = (float)abs((sin(7 * value) + cos(15 * value)) / 2f);
             return new Color(r, g, b);
         });
-        mainPanel = new SelectablePanel(painter);
+        mainPanel = new SelectablePanel(painter);   // СНАЧАЛА создаём
+
+        mainPanel.setWindow(this);                  // ПОТОМ используем
+
         mainPanel.setBackground(Color.WHITE);
         mainPanel.addSelectListener((r)->{
             var xMin = conv.xScr2Crt(r.x);
@@ -40,9 +43,23 @@ public class MainWindow extends JFrame {
             conv.setYShape(yMin, yMax);
             mainPanel.repaint();
         });
+
         setContent();
     }
+    public void shift(double dx, double dy) {
+        double xMin = conv.xScr2Crt(0);
+        double xMax = conv.xScr2Crt(mainPanel.getWidth());
+        double yMin = conv.yScr2Crt(mainPanel.getHeight());
+        double yMax = conv.yScr2Crt(0);
 
+        double scaleX = (xMax - xMin) / mainPanel.getWidth();
+        double scaleY = (yMax - yMin) / mainPanel.getHeight();
+
+        conv.setXShape(xMin - dx * scaleX, xMax - dx * scaleX);
+        conv.setYShape(yMin + dy * scaleY, yMax + dy * scaleY);
+
+        mainPanel.repaint();
+    }
     private void setContent(){
         var gl = new GroupLayout(getContentPane());
         setLayout(gl);
