@@ -11,7 +11,10 @@ import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.InputEvent;
-
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.PrintWriter;
 import static java.lang.Math.*;
 
 public class MainWindow extends JFrame {
@@ -106,6 +109,10 @@ public class MainWindow extends JFrame {
         fileMenu.addSeparator();
         fileMenu.add(openFrac);
 
+        saveFrac.addActionListener(e -> saveFractal("frac"));
+        saveJpg.addActionListener(e -> saveFractal("jpg"));
+        savePng.addActionListener(e -> saveFractal("png"));
+
         JMenu editMenu = new JMenu("Правка");
         JMenuItem undo = new JMenuItem("Отменить действие (Ctrl+Z)");
         undo.setAccelerator(KeyStroke.getKeyStroke('Z', InputEvent.CTRL_DOWN_MASK));
@@ -160,6 +167,64 @@ public class MainWindow extends JFrame {
 
         conv.setXShape(xMin - xDiff, xMax + xDiff);
         conv.setYShape(yMin - yDiff, yMax + yDiff);
+    }
+    /// сохранение фрактала
+    private void saveFractal(String format) {
+        JFileChooser chooser = new JFileChooser();
+
+        int result = chooser.showSaveDialog(this);
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            var file = chooser.getSelectedFile();
+            String path = file.getAbsolutePath();
+
+            try {
+                // --- PNG / JPG ---
+                if (format.equals("png") || format.equals("jpg")) {
+
+                    if (!path.endsWith("." + format)) {
+                        path += "." + format;
+                    }
+
+                    BufferedImage img = new BufferedImage(
+                            mainPanel.getWidth(),
+                            mainPanel.getHeight(),
+                            BufferedImage.TYPE_INT_RGB
+                    );
+
+                    Graphics2D g2 = img.createGraphics();
+                    mainPanel.paint(g2);
+
+                    // подпись координат
+                    g2.setColor(Color.BLACK);
+                    g2.drawString(
+                            "x: " + conv.xScr2Crt(0) + " .. " + conv.xScr2Crt(mainPanel.getWidth()) +
+                                    " y: " + conv.yScr2Crt(mainPanel.getHeight()) + " .. " + conv.yScr2Crt(0),
+                            10, 20
+                    );
+
+                    ImageIO.write(img, format, new File(path));
+                }
+
+                // --- FRAC ---
+                else if (format.equals("frac")) {
+
+                    if (!path.endsWith(".frac")) {
+                        path += ".frac";
+                    }
+
+                    try (PrintWriter out = new PrintWriter(path)) {
+                        out.println(conv.xScr2Crt(0));
+                        out.println(conv.xScr2Crt(mainPanel.getWidth()));
+                        out.println(conv.yScr2Crt(mainPanel.getHeight()));
+                        out.println(conv.yScr2Crt(0));
+                    }
+                }
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
     }
 
 }
