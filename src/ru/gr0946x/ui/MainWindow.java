@@ -16,6 +16,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.PrintWriter;
 import static java.lang.Math.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public class MainWindow extends JFrame {
 
@@ -63,6 +65,13 @@ public class MainWindow extends JFrame {
         });
         setContent();
         createMenu();
+
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                ((FractalPainter) painter).shutdown();
+            }
+        });
     }
     public void shift(double dx, double dy) {
         double xMin = conv.xScr2Crt(0);
