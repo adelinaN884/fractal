@@ -3,6 +3,7 @@ package ru.gr0946x.ui.painting;
 import ru.gr0946x.Converter;
 import ru.gr0946x.ui.fractals.ColorFunction;
 import ru.gr0946x.ui.fractals.Fractal;
+import ru.gr0946x.ui.fractals.Mandelbrot;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -25,12 +26,16 @@ public class FractalPainter implements Painter{
     private double cachedXMin, cachedXMax, cachedYMin, cachedYMax;
     private int cachedWidth, cachedHeight;
 
+    private double lastZoom = 1.0;
+
     public FractalPainter(Fractal f, Converter conv, ColorFunction cf) {
         this.fractal = f;
         this.conv = conv;
         this.colorFunction = cf;
         this.numThreads = Runtime.getRuntime().availableProcessors();
         this.executor = Executors.newFixedThreadPool(numThreads);
+
+        updateFractalIterations();
     }
 
     @Override
@@ -53,6 +58,8 @@ public class FractalPainter implements Painter{
         conv.setHeight(height);
     }
 
+
+
     public void setColorFunction(ColorFunction cf) {
         this.colorFunction = cf;
         invalidateCache();
@@ -61,6 +68,19 @@ public class FractalPainter implements Painter{
     public void invalidateCache() {
         synchronized (drawLock) {
             cachedImage = null;
+        }
+    }
+
+    private void updateFractalIterations() {
+        if (fractal instanceof Mandelbrot) {
+            double xMin = conv.getXMin();
+            double xMax = conv.getXMax();
+            double zoom = 1.0 / (xMax - xMin);
+
+            if (Math.abs(zoom - lastZoom) > 0.01) {
+                lastZoom = zoom;
+                ((Mandelbrot) fractal).updateIterations(zoom);
+            }
         }
     }
 
@@ -74,6 +94,8 @@ public class FractalPainter implements Painter{
         var xMax = conv.getXMax();
         var yMin = conv.getYMin();
         var yMax = conv.getYMax();
+
+        updateFractalIterations();
 
         BufferedImage img = null;
         synchronized (drawLock) {
