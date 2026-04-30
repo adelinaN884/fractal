@@ -43,6 +43,7 @@ public class SelectablePanel extends PaintPanel{
 
                 if (SwingUtilities.isRightMouseButton(e)) {
                     lastDragPoint = null;
+                    if (window != null) window.shiftEnd();
                 } else {
                     paintSelectedRect();
                     for (var handler : selectHandlers) {

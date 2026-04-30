@@ -25,6 +25,8 @@ public class MainWindow extends JFrame {
     private final Painter painter;
     private final Fractal mandelbrot;
     private final Converter conv;
+    private final History history = new History();
+
     public MainWindow(){
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(800, 650));
@@ -52,6 +54,11 @@ public class MainWindow extends JFrame {
         });
 
         mainPanel.addSelectListener((r)->{
+            var xMinOld = conv.getXMin();
+            var xMaxOld = conv.getXMax();
+            var yMinOld = conv.getYMin();
+            var yMaxOld = conv.getYMax();
+
             var xMin = conv.xScr2Crt(r.x);
             var xMax = conv.xScr2Crt(r.x + r.width);
             var yMin = conv.yScr2Crt(r.y + r.height);
@@ -61,6 +68,9 @@ public class MainWindow extends JFrame {
 
             currentScale = 0.0;
             recalculateBounds();
+
+            history.push(xMinOld, xMaxOld, yMinOld, yMaxOld);
+            ((FractalPainter) painter).invalidateCache();
             mainPanel.repaint();
         });
         setContent();
@@ -73,7 +83,21 @@ public class MainWindow extends JFrame {
             }
         });
     }
+    private long lastShiftPushTime = 0;
+    private boolean shiftSaved = false;
     public void shift(double dx, double dy) {
+        long now = System.currentTimeMillis();
+
+        if (!shiftSaved) {
+            history.push(conv.getXMin(), conv.getXMax(), conv.getYMin(), conv.getYMax());
+            shiftSaved = true;
+            lastShiftPushTime = now;
+        }
+        else if (now - lastShiftPushTime > 200) {
+            history.push(conv.getXMin(), conv.getXMax(), conv.getYMin(), conv.getYMax());
+            lastShiftPushTime = now;
+        }
+
         double xMin = conv.xScr2Crt(0);
         double xMax = conv.xScr2Crt(mainPanel.getWidth());
         double yMin = conv.yScr2Crt(mainPanel.getHeight());
@@ -85,7 +109,11 @@ public class MainWindow extends JFrame {
         conv.setXShape(xMin - dx * scaleX, xMax - dx * scaleX);
         conv.setYShape(yMin + dy * scaleY, yMax + dy * scaleY);
 
+        ((FractalPainter) painter).invalidateCache();
         mainPanel.repaint();
+    }
+    public void shiftEnd() {
+        shiftSaved = false;
     }
     private void setContent(){
         var gl = new GroupLayout(getContentPane());
@@ -118,14 +146,20 @@ public class MainWindow extends JFrame {
         fileMenu.addSeparator();
         fileMenu.add(openFrac);
 
-        saveFrac.addActionListener(e -> saveFractal("frac"));
-        saveJpg.addActionListener(e -> saveFractal("jpg"));
-        savePng.addActionListener(e -> saveFractal("png"));
+        saveFrac.addActionListener(_ -> saveFractal("frac"));
+        saveJpg.addActionListener(_ -> saveFractal("jpg"));
+        savePng.addActionListener(_ -> saveFractal("png"));
 
         JMenu editMenu = new JMenu("Правка");
         JMenuItem undo = new JMenuItem("Отменить действие (Ctrl+Z)");
         undo.setAccelerator(KeyStroke.getKeyStroke('Z', InputEvent.CTRL_DOWN_MASK));
+        undo.addActionListener(_ -> performUndo());
         editMenu.add(undo);
+
+        JMenuItem redo = new JMenuItem("Вернуть отмену (Ctrl+Y)"); // ← ДОБАВЛЕНО
+        redo.setAccelerator(KeyStroke.getKeyStroke('Y', InputEvent.CTRL_DOWN_MASK));
+        redo.addActionListener(_ -> performRedo());                // ← ДОБАВЛЕНО
+        editMenu.add(redo);
 
         JMenu viewMenu = new JMenu("Вид");
         JMenuItem showJulia = new JMenuItem("Показать множество Жюлиа");
@@ -142,8 +176,6 @@ public class MainWindow extends JFrame {
 
         setJMenuBar(menuBar);
     }
-
-
 
     private double currentScale = 0.0;
 
@@ -177,6 +209,33 @@ public class MainWindow extends JFrame {
         conv.setXShape(xMin - xDiff, xMax + xDiff);
         conv.setYShape(yMin - yDiff, yMax + yDiff);
     }
+    private void performUndo() {
+        var snapshot = history.undo(
+                conv.getXMin(), conv.getXMax(), conv.getYMin(), conv.getYMax()
+        );
+        if (snapshot != null) {
+            conv.setXShape(snapshot.xMin(), snapshot.xMax());
+            conv.setYShape(snapshot.yMin(), snapshot.yMax());
+            currentScale = 0.0;
+            recalculateBounds();
+            ((FractalPainter) painter).invalidateCache();
+            mainPanel.repaint();
+        }
+    }
+
+    private void performRedo() {
+        var snapshot = history.redo(
+                conv.getXMin(), conv.getXMax(), conv.getYMin(), conv.getYMax()
+        );
+        if (snapshot != null) {
+            conv.setXShape(snapshot.xMin(), snapshot.xMax());
+            conv.setYShape(snapshot.yMin(), snapshot.yMax());
+            currentScale = 0.0;
+            recalculateBounds();
+            ((FractalPainter) painter).invalidateCache();
+            mainPanel.repaint();
+        }
+    }
     /// сохранение фрактала
     private void saveFractal(String format) {
         JFileChooser chooser = new JFileChooser();
@@ -188,7 +247,7 @@ public class MainWindow extends JFrame {
             String path = file.getAbsolutePath();
 
             try {
-                // --- PNG / JPG ---
+                // PNG / JPG
                 if (format.equals("png") || format.equals("jpg")) {
 
                     if (!path.endsWith("." + format)) {
@@ -215,7 +274,7 @@ public class MainWindow extends JFrame {
                     ImageIO.write(img, format, new File(path));
                 }
 
-                // --- FRAC ---
+                //  FRAC
                 else if (format.equals("frac")) {
 
                     if (!path.endsWith(".frac")) {
