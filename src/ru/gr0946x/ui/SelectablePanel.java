@@ -57,6 +57,15 @@ public class SelectablePanel extends PaintPanel{
                     rect = null;
                 }
             }
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.isControlDown() && SwingUtilities.isLeftMouseButton(e) && window != null) {
+                    var conv = window.getConv();
+                    double cx = conv.xScr2Crt(e.getX());
+                    double cy = conv.yScr2Crt(e.getY());
+                    window.openJuliaWindow(cx, cy);
+                }
+            }
         });
 
         addMouseMotionListener(new MouseMotionAdapter() {

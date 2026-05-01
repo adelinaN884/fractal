@@ -26,6 +26,7 @@ public class MainWindow extends JFrame {
     private final Fractal mandelbrot;
     private final Converter conv;
     private final History history = new History();
+    private JuliaWindow juliaWindow = null;
 
     public MainWindow(){
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -163,6 +164,11 @@ public class MainWindow extends JFrame {
 
         JMenu viewMenu = new JMenu("Вид");
         JMenuItem showJulia = new JMenuItem("Показать множество Жюлиа");
+        showJulia.addActionListener(_ -> {
+            double cx = (conv.getXMin() + conv.getXMax()) / 2.0;
+            double cy = (conv.getYMin() + conv.getYMax()) / 2.0;
+            openJuliaWindow(cx, cy);
+        });
         viewMenu.add(showJulia);
 
         JMenu animationMenu = new JMenu("Анимация");
@@ -235,6 +241,18 @@ public class MainWindow extends JFrame {
             ((FractalPainter) painter).invalidateCache();
             mainPanel.repaint();
         }
+    }
+    public Converter getConv() {
+        return conv;
+    }
+
+    public void openJuliaWindow(double cx, double cy) {
+        if (juliaWindow != null && juliaWindow.isVisible()) {
+            juliaWindow.dispose();
+        }
+        juliaWindow = new JuliaWindow(cx, cy);
+        juliaWindow.setLocationRelativeTo(this);
+        juliaWindow.setVisible(true);
     }
     /// сохранение фрактала
     private void saveFractal(String format) {
