@@ -149,6 +149,7 @@ public class MainWindow extends JFrame {
         saveFrac.addActionListener(_ -> saveFractal("frac"));
         saveJpg.addActionListener(_ -> saveFractal("jpg"));
         savePng.addActionListener(_ -> saveFractal("png"));
+        openFrac.addActionListener(_ -> openFractal());
 
         JMenu editMenu = new JMenu("Правка");
         JMenuItem undo = new JMenuItem("Отменить действие (Ctrl+Z)");
@@ -291,6 +292,53 @@ public class MainWindow extends JFrame {
 
             } catch (Exception ex) {
                 ex.printStackTrace();
+            }
+        }
+    }
+
+    private void openFractal() {
+        JFileChooser chooser = new JFileChooser();
+
+        // Устанавливаем фильтр: показывать только .frac файлы
+        var filter = new javax.swing.filechooser.FileNameExtensionFilter(
+                "Файлы фракталов (*.frac)", "frac"
+        );
+        chooser.setFileFilter(filter);
+
+        int result = chooser.showOpenDialog(this);
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            var file = chooser.getSelectedFile();
+
+            try (var reader = new java.io.BufferedReader(new java.io.FileReader(file))) {
+                // Читаем 4 строки
+                double xMin = Double.parseDouble(reader.readLine());
+                double xMax = Double.parseDouble(reader.readLine());
+                double yMin = Double.parseDouble(reader.readLine());
+                double yMax = Double.parseDouble(reader.readLine());
+
+                // Сохраняем текущее состояние в историю (чтобы можно было отменить)
+                history.push(conv.getXMin(), conv.getXMax(), conv.getYMin(), conv.getYMax());
+
+                // Устанавливаем новые границы
+                conv.setXShape(xMin, xMax);
+                conv.setYShape(yMin, yMax);
+
+                // Сбрасываем масштаб и пересчитываем пропорции
+                currentScale = 0.0;
+                recalculateBounds();
+
+                // Очищаем кэш и перерисовываем
+                ((FractalPainter) painter).invalidateCache();
+                mainPanel.repaint();
+
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Ошибка при открытии файла: " + ex.getMessage(),
+                        "Ошибка",
+                        JOptionPane.ERROR_MESSAGE
+                );
             }
         }
     }
