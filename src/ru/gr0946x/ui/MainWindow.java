@@ -1,6 +1,7 @@
 package ru.gr0946x.ui;
 
 import ru.gr0946x.Converter;
+import ru.gr0946x.ui.fractals.ColorSchemes;
 import ru.gr0946x.ui.fractals.Fractal;
 import ru.gr0946x.ui.fractals.Mandelbrot;
 import ru.gr0946x.ui.painting.FractalPainter;
@@ -171,6 +172,41 @@ public class MainWindow extends JFrame {
             openJuliaWindow(cx, cy);
         });
         viewMenu.add(showJulia);
+
+        JMenu colorSchemeMenu = new JMenu("Цветовая схема");
+
+        JMenuItem rainbowItem = new JMenuItem("Радужная");
+        JMenuItem fireItem = new JMenuItem("Огненная");
+        JMenuItem oceanItem = new JMenuItem("Океан");
+        JMenuItem grayscaleItem = new JMenuItem("Оттенки серого");
+
+        rainbowItem.addActionListener(_ -> {
+            ((FractalPainter) painter).setColorFunction(ColorSchemes.RAINBOW);
+            mainPanel.repaint();
+        });
+
+        fireItem.addActionListener(_ -> {
+            ((FractalPainter) painter).setColorFunction(ColorSchemes.FIRE);
+            mainPanel.repaint();
+        });
+
+        oceanItem.addActionListener(_ -> {
+            ((FractalPainter) painter).setColorFunction(ColorSchemes.OCEAN);
+            mainPanel.repaint();
+        });
+
+        grayscaleItem.addActionListener(_ -> {
+            ((FractalPainter) painter).setColorFunction(ColorSchemes.GRAYSCALE);
+            mainPanel.repaint();
+        });
+
+        colorSchemeMenu.add(rainbowItem);
+        colorSchemeMenu.add(fireItem);
+        colorSchemeMenu.add(oceanItem);
+        colorSchemeMenu.add(grayscaleItem);
+
+        viewMenu.addSeparator();
+        viewMenu.add(colorSchemeMenu);
 
         JMenu animationMenu = new JMenu("Анимация");
         JMenuItem setupAnimation = new JMenuItem("Настройка экскурсии");
