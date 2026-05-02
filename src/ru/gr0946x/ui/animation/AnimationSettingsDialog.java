@@ -2,8 +2,8 @@ package ru.gr0946x.ui.animation;
 
 // Импортируем нужные классы
 import ru.gr0946x.Converter;
-import ru.gr0946x.animation.KeyFrame;
-import ru.gr0946x.animation.AnimationEngine;
+import ru.gr0946x.ui.animation.KeyFrame;
+import ru.gr0946x.ui.animation.AnimationEngine;
 import ru.gr0946x.ui.MainWindow;
 import ru.gr0946x.ui.painting.FractalPainter;
 
@@ -42,8 +42,14 @@ public class AnimationSettingsDialog extends JDialog {
      * Конструктор - создаёт окно настроек
      */
     public AnimationSettingsDialog(MainWindow owner) {
-        super(owner, "Настройка экскурсии по фракталу", true);
+        super(owner, "Настройка экскурсии по фракталу", false);
         this.mainWindow = owner;
+
+        // Прогресс-бар создаём ЗДЕСЬ (в самом начале)
+        progressBar = new JProgressBar(0, 100);
+        progressBar.setStringPainted(true);
+
+        setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 
         // Копируем текущие координаты из главного окна
         Converter ownerConv = owner.getConverter();
@@ -55,6 +61,7 @@ public class AnimationSettingsDialog extends JDialog {
         // Настройка окна
         setSize(900, 600);
         setLocationRelativeTo(owner);  // По центру главного окна
+        // При закрытии окно скрывается, а не уничтожается
         setLayout(new BorderLayout(10, 10));
 
         // === СОЗДАЁМ ТАБЛИЦУ КЛЮЧЕВЫХ КАДРОВ ===
@@ -110,9 +117,6 @@ public class AnimationSettingsDialog extends JDialog {
         deleteButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         deleteButton.addActionListener(e -> deleteSelectedFrame());
 
-        // Прогресс-бар
-        progressBar = new JProgressBar(0, 100);
-        progressBar.setStringPainted(true);
         progressBar.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         // Кнопка "Создать видео"
@@ -221,29 +225,33 @@ public class AnimationSettingsDialog extends JDialog {
         fileChooser.setSelectedFile(new File("fractal_tour.gif"));
 
         if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-            File outputFile = fileChooser.getSelectedFile();
+            // ВСЕ ПЕРЕМЕННЫЕ ДЕЛАЕМ final СРАЗУ ПРИ СОЗДАНИИ
+            final File outputFile = fileChooser.getSelectedFile();
 
             // Добавляем расширение .gif если нужно
             if (!outputFile.getName().toLowerCase().endsWith(".gif")) {
-                outputFile = new File(outputFile.getAbsolutePath() + ".gif");
+                // Не можем изменить final переменную, создаём новую
             }
 
-            int fps = (int) fpsSpinner.getValue();
+            // Проверяем расширение и создаём правильное имя файла
+            final File finalOutputFile;
+            if (!outputFile.getName().toLowerCase().endsWith(".gif")) {
+                finalOutputFile = new File(outputFile.getAbsolutePath() + ".gif");
+            } else {
+                finalOutputFile = outputFile;
+            }
 
-            // Получаем painter и converter из главного окна
-            FractalPainter painter = mainWindow.getPainter();
-            Converter conv = mainWindow.getConverter();
-
-            // Размеры как у главного окна
-            int width = mainWindow.getMainPanel().getWidth();
-            int height = mainWindow.getMainPanel().getHeight();
+            final int fps = (int) fpsSpinner.getValue();
+            final FractalPainter painter = mainWindow.getPainter();
+            final Converter conv = mainWindow.getConverter();
+            final int width = mainWindow.getMainPanel().getWidth();
+            final int height = mainWindow.getMainPanel().getHeight();
 
             // Создаём движок анимации
-            AnimationEngine engine = new AnimationEngine(
+            final AnimationEngine engine = new AnimationEngine(
                     keyframes,
                     fps,
                     (overall, segment) -> {
-                        // Обновляем прогресс-бар
                         SwingUtilities.invokeLater(() -> {
                             progressBar.setValue((int)(overall * 100));
                             progressBar.setString((int)(overall * 100) + "%");
@@ -251,28 +259,28 @@ public class AnimationSettingsDialog extends JDialog {
                     }
             );
 
-            // Запускаем рендеринг в отдельном потоке (чтобы окно не зависало)
+            // Запускаем рендеринг в отдельном потоке
             new Thread(() -> {
                 try {
-                    // Меняем текст кнопки
                     SwingUtilities.invokeLater(() ->
                             progressBar.setString("Рисую анимацию..."));
 
-                    engine.renderAnimation(outputFile, painter, conv, width, height);
+                    engine.renderAnimation(finalOutputFile, painter, conv, width, height);
 
-                    // Сообщаем об успехе
                     SwingUtilities.invokeLater(() -> {
                         progressBar.setValue(100);
                         progressBar.setString("Готово!");
-                        JOptionPane.showMessageDialog(this,
-                                "Анимация сохранена!\n" + outputFile.getAbsolutePath(),
+                        JOptionPane.showMessageDialog(
+                                AnimationSettingsDialog.this,
+                                "Анимация сохранена!\n" + finalOutputFile.getAbsolutePath(),
                                 "Успех",
                                 JOptionPane.INFORMATION_MESSAGE);
                     });
                 } catch (Exception e) {
                     SwingUtilities.invokeLater(() -> {
                         progressBar.setString("Ошибка!");
-                        JOptionPane.showMessageDialog(this,
+                        JOptionPane.showMessageDialog(
+                                AnimationSettingsDialog.this,
                                 "Ошибка при создании анимации:\n" + e.getMessage(),
                                 "Ошибка",
                                 JOptionPane.ERROR_MESSAGE);

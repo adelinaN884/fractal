@@ -29,6 +29,7 @@ public class MainWindow extends JFrame {
     private final Converter conv;
     private final History history = new History();
     private JuliaWindow juliaWindow = null;
+    private AnimationSettingsDialog animationDialog = null;
 
     public MainWindow(){
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -212,8 +213,10 @@ public class MainWindow extends JFrame {
         JMenu animationMenu = new JMenu("Анимация");
         JMenuItem setupAnimation = new JMenuItem("Настройка экскурсии");
         setupAnimation.addActionListener(e -> {
-            AnimationSettingsDialog dialog = new AnimationSettingsDialog(this);
-            dialog.setVisible(true);
+            if (animationDialog == null) {
+                animationDialog = new AnimationSettingsDialog(this);
+            }
+            animationDialog.setVisible(true);
         });
         animationMenu.add(setupAnimation);
 
