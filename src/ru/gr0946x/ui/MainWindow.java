@@ -26,6 +26,7 @@ public class MainWindow extends JFrame {
     private final Fractal mandelbrot;
     private final Converter conv;
     private final History history = new History();
+    private JuliaWindow juliaWindow = null;
 
     public MainWindow(){
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -39,9 +40,9 @@ public class MainWindow extends JFrame {
             var b = (float)abs((sin(7 * value) + cos(15 * value)) / 2f);
             return new Color(r, g, b);
         });
-        mainPanel = new SelectablePanel(painter);   // СНАЧАЛА создаём
+        mainPanel = new SelectablePanel(painter);
 
-        mainPanel.setWindow(this);                  // ПОТОМ используем
+        mainPanel.setWindow(this);
 
         mainPanel.setBackground(Color.WHITE);
 
@@ -157,13 +158,18 @@ public class MainWindow extends JFrame {
         undo.addActionListener(_ -> performUndo());
         editMenu.add(undo);
 
-        JMenuItem redo = new JMenuItem("Вернуть отмену (Ctrl+Y)"); // ← ДОБАВЛЕНО
+        JMenuItem redo = new JMenuItem("Вернуть отмену (Ctrl+Y)");
         redo.setAccelerator(KeyStroke.getKeyStroke('Y', InputEvent.CTRL_DOWN_MASK));
-        redo.addActionListener(_ -> performRedo());                // ← ДОБАВЛЕНО
+        redo.addActionListener(_ -> performRedo());
         editMenu.add(redo);
 
         JMenu viewMenu = new JMenu("Вид");
         JMenuItem showJulia = new JMenuItem("Показать множество Жюлиа");
+        showJulia.addActionListener(_ -> {
+            double cx = (conv.getXMin() + conv.getXMax()) / 2.0;
+            double cy = (conv.getYMin() + conv.getYMax()) / 2.0;
+            openJuliaWindow(cx, cy);
+        });
         viewMenu.add(showJulia);
 
         JMenu animationMenu = new JMenu("Анимация");
@@ -236,6 +242,18 @@ public class MainWindow extends JFrame {
             ((FractalPainter) painter).invalidateCache();
             mainPanel.repaint();
         }
+    }
+    public Converter getConv() {
+        return conv;
+    }
+
+    public void openJuliaWindow(double cx, double cy) {
+        if (juliaWindow != null && juliaWindow.isVisible()) {
+            juliaWindow.dispose();
+        }
+        juliaWindow = new JuliaWindow(cx, cy);
+        juliaWindow.setLocationRelativeTo(this);
+        juliaWindow.setVisible(true);
     }
     /// сохранение фрактала
     private void saveFractal(String format) {
