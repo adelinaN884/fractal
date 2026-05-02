@@ -32,7 +32,7 @@ public class SelectablePanel extends PaintPanel{
 
                 if (SwingUtilities.isRightMouseButton(e)) {
                     lastDragPoint = e.getPoint();
-                } else {
+                } else if (!e.isControlDown()) {
                     rect = new SelectedRect(e.getX(), e.getY());
                     paintSelectedRect();
                 }
@@ -43,7 +43,8 @@ public class SelectablePanel extends PaintPanel{
 
                 if (SwingUtilities.isRightMouseButton(e)) {
                     lastDragPoint = null;
-                } else {
+                    if (window != null) window.shiftEnd();
+                } else if (!e.isControlDown() && rect != null) {
                     paintSelectedRect();
                     for (var handler : selectHandlers) {
                         handler.onSelect(new Rectangle(
@@ -54,6 +55,15 @@ public class SelectablePanel extends PaintPanel{
                         ));
                     }
                     rect = null;
+                }
+            }
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.isControlDown() && SwingUtilities.isLeftMouseButton(e) && window != null) {
+                    var conv = window.getConv();
+                    double cx = conv.xScr2Crt(e.getX());
+                    double cy = conv.yScr2Crt(e.getY());
+                    window.openJuliaWindow(cx, cy);
                 }
             }
         });
@@ -74,7 +84,7 @@ public class SelectablePanel extends PaintPanel{
                         window.shift(dx, dy);
                     }
 
-                } else {
+                } else if (!e.isControlDown()) {
                     paintSelectedRect();
                     if (rect != null){
                         rect.setLastPoint(e.getX(), e.getY());
