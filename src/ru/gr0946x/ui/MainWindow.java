@@ -75,7 +75,7 @@ public class MainWindow extends JFrame {
             currentScale = 0.0;
             recalculateBounds();
 
-            history.push(xMinOld, xMaxOld, yMinOld, yMaxOld);
+            history.push(xMinOld, xMaxOld, yMinOld, yMaxOld, currentColorScheme);
             ((FractalPainter) painter).invalidateCache();
             mainPanel.repaint();
         });
@@ -95,12 +95,12 @@ public class MainWindow extends JFrame {
         long now = System.currentTimeMillis();
 
         if (!shiftSaved) {
-            history.push(conv.getXMin(), conv.getXMax(), conv.getYMin(), conv.getYMax());
+            history.push(conv.getXMin(), conv.getXMax(), conv.getYMin(), conv.getYMax(), currentColorScheme);
             shiftSaved = true;
             lastShiftPushTime = now;
         }
         else if (now - lastShiftPushTime > 200) {
-            history.push(conv.getXMin(), conv.getXMax(), conv.getYMin(), conv.getYMax());
+            history.push(conv.getXMin(), conv.getXMax(), conv.getYMin(), conv.getYMax(), currentColorScheme);
             lastShiftPushTime = now;
         }
 
@@ -185,24 +185,28 @@ public class MainWindow extends JFrame {
         JMenuItem grayscaleItem = new JMenuItem("Оттенки серого");
 
         rainbowItem.addActionListener(_ -> {
+            history.push(conv.getXMin(), conv.getXMax(), conv.getYMin(), conv.getYMax(), currentColorScheme);
             currentColorScheme = ColorSchemes.RAINBOW;
             ((FractalPainter) painter).setColorFunction(ColorSchemes.RAINBOW);
             mainPanel.repaint();
         });
 
         fireItem.addActionListener(_ -> {
+            history.push(conv.getXMin(), conv.getXMax(), conv.getYMin(), conv.getYMax(), currentColorScheme);
             currentColorScheme = ColorSchemes.FIRE;
             ((FractalPainter) painter).setColorFunction(ColorSchemes.FIRE);
             mainPanel.repaint();
         });
 
         oceanItem.addActionListener(_ -> {
+            history.push(conv.getXMin(), conv.getXMax(), conv.getYMin(), conv.getYMax(), currentColorScheme);
             currentColorScheme = ColorSchemes.OCEAN;
             ((FractalPainter) painter).setColorFunction(ColorSchemes.OCEAN);
             mainPanel.repaint();
         });
 
         grayscaleItem.addActionListener(_ -> {
+            history.push(conv.getXMin(), conv.getXMax(), conv.getYMin(), conv.getYMax(), currentColorScheme);
             currentColorScheme = ColorSchemes.GRAYSCALE;
             ((FractalPainter) painter).setColorFunction(ColorSchemes.GRAYSCALE);
             mainPanel.repaint();
@@ -268,11 +272,12 @@ public class MainWindow extends JFrame {
     }
     private void performUndo() {
         var snapshot = history.undo(
-                conv.getXMin(), conv.getXMax(), conv.getYMin(), conv.getYMax()
-        );
+                conv.getXMin(), conv.getXMax(), conv.getYMin(), conv.getYMax(), currentColorScheme);
         if (snapshot != null) {
             conv.setXShape(snapshot.xMin(), snapshot.xMax());
             conv.setYShape(snapshot.yMin(), snapshot.yMax());
+            currentColorScheme = snapshot.colorFunc();
+            ((FractalPainter) painter).setColorFunction(currentColorScheme);
             currentScale = 0.0;
             recalculateBounds();
             ((FractalPainter) painter).invalidateCache();
@@ -281,12 +286,12 @@ public class MainWindow extends JFrame {
     }
 
     private void performRedo() {
-        var snapshot = history.redo(
-                conv.getXMin(), conv.getXMax(), conv.getYMin(), conv.getYMax()
-        );
+        var snapshot = history.redo(conv.getXMin(), conv.getXMax(), conv.getYMin(), conv.getYMax(),currentColorScheme);
         if (snapshot != null) {
             conv.setXShape(snapshot.xMin(), snapshot.xMax());
             conv.setYShape(snapshot.yMin(), snapshot.yMax());
+            currentColorScheme = snapshot.colorFunc();
+            ((FractalPainter) painter).setColorFunction(currentColorScheme);
             currentScale = 0.0;
             recalculateBounds();
             ((FractalPainter) painter).invalidateCache();
@@ -386,7 +391,7 @@ public class MainWindow extends JFrame {
                 double yMax = Double.parseDouble(reader.readLine());
 
                 // Сохраняем текущее состояние в историю (чтобы можно было отменить)
-                history.push(conv.getXMin(), conv.getXMax(), conv.getYMin(), conv.getYMax());
+                history.push(conv.getXMin(), conv.getXMax(), conv.getYMin(), conv.getYMax(), currentColorScheme);
 
                 // Устанавливаем новые границы
                 conv.setXShape(xMin, xMax);
