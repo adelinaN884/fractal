@@ -6,12 +6,13 @@ import ru.gr0946x.ui.fractals.JuliaSet;
 import ru.gr0946x.ui.painting.FractalPainter;
 import javax.swing.*;
 import java.awt.*;
+import ru.gr0946x.ui.fractals.ColorFunction;
 
 public class JuliaWindow extends JFrame {
 
     private final FractalPainter juliaPainter;
 
-    public JuliaWindow(double cx, double cy) {
+    public JuliaWindow(double cx, double cy, ColorFunction colorFunc) {
         setTitle("Множество Жюлиа: c = " + String.format("%.6f + %.6fi", cx, cy));
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setSize(600, 600);
@@ -20,7 +21,7 @@ public class JuliaWindow extends JFrame {
         var juliaSet = new JuliaSet(cx, cy);
         var conv = new Converter(-2.0, 2.0, -2.0, 2.0);
 
-        juliaPainter = new FractalPainter(juliaSet, conv, ColorSchemes.RAINBOW);
+        juliaPainter = new FractalPainter(juliaSet, conv, colorFunc);
 
         var juliaPanel = new PaintPanel(juliaPainter);
         juliaPanel.setBackground(Color.BLACK);

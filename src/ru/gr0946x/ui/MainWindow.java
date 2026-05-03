@@ -2,6 +2,7 @@ package ru.gr0946x.ui;
 
 import ru.gr0946x.Converter;
 import ru.gr0946x.ui.fractals.ColorSchemes;
+import ru.gr0946x.ui.fractals.ColorFunction;
 import ru.gr0946x.ui.fractals.Fractal;
 import ru.gr0946x.ui.fractals.Mandelbrot;
 import ru.gr0946x.ui.painting.FractalPainter;
@@ -30,6 +31,7 @@ public class MainWindow extends JFrame {
     private final History history = new History();
     private JuliaWindow juliaWindow = null;
     private AnimationSettingsDialog animationDialog = null;
+    private ColorFunction currentColorScheme = ColorSchemes.RAINBOW;
 
     public MainWindow(){
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -183,21 +185,25 @@ public class MainWindow extends JFrame {
         JMenuItem grayscaleItem = new JMenuItem("Оттенки серого");
 
         rainbowItem.addActionListener(_ -> {
+            currentColorScheme = ColorSchemes.RAINBOW;
             ((FractalPainter) painter).setColorFunction(ColorSchemes.RAINBOW);
             mainPanel.repaint();
         });
 
         fireItem.addActionListener(_ -> {
+            currentColorScheme = ColorSchemes.FIRE;
             ((FractalPainter) painter).setColorFunction(ColorSchemes.FIRE);
             mainPanel.repaint();
         });
 
         oceanItem.addActionListener(_ -> {
+            currentColorScheme = ColorSchemes.OCEAN;
             ((FractalPainter) painter).setColorFunction(ColorSchemes.OCEAN);
             mainPanel.repaint();
         });
 
         grayscaleItem.addActionListener(_ -> {
+            currentColorScheme = ColorSchemes.GRAYSCALE;
             ((FractalPainter) painter).setColorFunction(ColorSchemes.GRAYSCALE);
             mainPanel.repaint();
         });
@@ -295,7 +301,7 @@ public class MainWindow extends JFrame {
         if (juliaWindow != null && juliaWindow.isVisible()) {
             juliaWindow.dispose();
         }
-        juliaWindow = new JuliaWindow(cx, cy);
+        juliaWindow = new JuliaWindow(cx, cy, currentColorScheme);
         juliaWindow.setLocationRelativeTo(this);
         juliaWindow.setVisible(true);
     }
