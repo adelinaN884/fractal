@@ -28,13 +28,20 @@ public class FractalPainter implements Painter{
 
     private double lastZoom = 1.0;
 
+    private static volatile ExecutorService sharedExecutor = null;
+    private static final Object executorLock = new Object();
+
     public FractalPainter(Fractal f, Converter conv, ColorFunction cf) {
         this.fractal = f;
         this.conv = conv;
         this.colorFunction = cf;
         this.numThreads = Runtime.getRuntime().availableProcessors();
-        this.executor = Executors.newFixedThreadPool(numThreads);
-
+        synchronized (executorLock) {
+            if (sharedExecutor == null || sharedExecutor.isShutdown()) {
+                sharedExecutor = Executors.newFixedThreadPool(numThreads);
+            }
+        }
+        this.executor = sharedExecutor;
         updateFractalIterations();
     }
 
@@ -171,6 +178,21 @@ public class FractalPainter implements Painter{
 
         if (img != null) {
             g.drawImage(img, 0, 0, null);
+        }
+    }
+
+    public static void shutdownGlobal() {
+        synchronized (executorLock) {
+            if (sharedExecutor != null && !sharedExecutor.isShutdown()) {
+                sharedExecutor.shutdown();
+                try {
+                    if (!sharedExecutor.awaitTermination(2, TimeUnit.SECONDS)) {
+                        sharedExecutor.shutdownNow();
+                    }
+                } catch (InterruptedException e) {
+                    sharedExecutor.shutdownNow();
+                }
+            }
         }
     }
 
