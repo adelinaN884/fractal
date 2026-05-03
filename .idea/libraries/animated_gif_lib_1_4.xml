@@ -1,8 +1,6 @@
 <component name="libraryTable">
-  <library name="convertation">
+  <library name="animated-gif-lib-1.4">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/lib/convertation.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/Math.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/animated-gif-lib-1.4.jar!/" />
     </CLASSES>
     <JAVADOC />

@@ -6,6 +6,7 @@ import ru.gr0946x.ui.fractals.Fractal;
 import ru.gr0946x.ui.fractals.Mandelbrot;
 import ru.gr0946x.ui.painting.FractalPainter;
 import ru.gr0946x.ui.painting.Painter;
+import ru.gr0946x.ui.animation.AnimationSettingsDialog;
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,6 +29,7 @@ public class MainWindow extends JFrame {
     private final Converter conv;
     private final History history = new History();
     private JuliaWindow juliaWindow = null;
+    private AnimationSettingsDialog animationDialog = null;
 
     public MainWindow(){
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -210,6 +212,12 @@ public class MainWindow extends JFrame {
 
         JMenu animationMenu = new JMenu("Анимация");
         JMenuItem setupAnimation = new JMenuItem("Настройка экскурсии");
+        setupAnimation.addActionListener(e -> {
+            if (animationDialog == null) {
+                animationDialog = new AnimationSettingsDialog(this);
+            }
+            animationDialog.setVisible(true);
+        });
         animationMenu.add(setupAnimation);
 
         menuBar.add(fileMenu);
@@ -396,5 +404,15 @@ public class MainWindow extends JFrame {
             }
         }
     }
+    public Converter getConverter() {
+        return conv;
+    }
 
+    public FractalPainter getPainter() {
+        return (FractalPainter) painter;
+    }
+
+    public SelectablePanel getMainPanel() {
+        return mainPanel;
+    }
 }
